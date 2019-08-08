@@ -2,12 +2,18 @@ package it.github.enricosecondulfo.sberqoolt
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.mongodb.core.aggregation.Aggregation
+import org.springframework.data.mongodb.core.aggregation.Aggregation.match
+import org.springframework.data.mongodb.core.aggregation.TypedAggregation
 import org.springframework.data.mongodb.core.query.Criteria
 
 class LogicalOperationsTests {
 
-    @Test
+    private val aggregationBuilder = AggregationBuilder()
+
+    /* @Test
     fun `test and criteria`() {
         val expr = "eq(name,c)&ne(description,d)&sort(+name)"
 
@@ -18,6 +24,5 @@ class LogicalOperationsTests {
         )
 
         Assertions.assertEquals(criteria, expectedCriteria)
-    }
-
+    } */
 }

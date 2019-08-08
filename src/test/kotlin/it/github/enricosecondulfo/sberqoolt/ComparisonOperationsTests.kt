@@ -1,93 +1,118 @@
 package it.github.enricosecondulfo.sberqoolt
 
+import it.github.enricosecondulfo.sberqoolt.dtos.Content
+import it.github.enricosecondulfo.sberqoolt.utils.TypedAggregationUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.aggregation.Aggregation.match
+import org.springframework.data.mongodb.core.aggregation.TypedAggregation
+import org.springframework.data.mongodb.core.query.*
 
 class ComparisonOperationsTests {
 
+    private val aggregationBuilder = AggregationBuilder()
+
     @Test
     fun `test equals criteria`() {
-        val expr = "eq(name,c)"
+        val expression = "eq(name,c)"
 
-        val criteria = RqlGrammarUtils.buildCriteria(expr)
-        val expectedCriteria = Criteria.where("name").`is`("c")
-        Assertions.assertEquals(criteria, expectedCriteria)
+        val aggregation: TypedAggregation<Content> = aggregationBuilder.build(expression)
+        val expectedAggregation = TypedAggregationUtils.build<Content>(
+            aggregations = *arrayOf(match(Content::name isEqualTo "c"))
+        )
+
+        Assertions.assertEquals(aggregation.toString(), expectedAggregation.toString())
     }
 
     @Test
     fun `test not equals criteria`() {
-        val expr = "ne(name,c)"
+        val expression = "ne(name,c)"
 
-        val criteria = RqlGrammarUtils.buildCriteria(expr)
-        val expectedCriteria = Criteria.where("name").ne("c")
-        Assertions.assertEquals(criteria, expectedCriteria)
+        val aggregation: TypedAggregation<Content> = aggregationBuilder.build(expression)
+        val expectedAggregation = TypedAggregationUtils.build<Content>(
+            aggregations = *arrayOf(match(Content::name ne "c"))
+        )
+
+        Assertions.assertEquals(aggregation.toString(), expectedAggregation.toString())
     }
 
     @Test
     fun `test less than criteria`() {
-        val expr = "lt(name,20)"
+        val expression = "lt(name,20)"
 
-        val criteria = RqlGrammarUtils.buildCriteria(expr)
-        val expectedCriteria = Criteria.where("name").lt("20")
-        Assertions.assertEquals(criteria, expectedCriteria)
+        val aggregation: TypedAggregation<Content> = aggregationBuilder.build(expression)
+        val expectedAggregation = TypedAggregationUtils.build<Content>(
+            aggregations = *arrayOf(match(Content::name lt "20"))
+        )
+        Assertions.assertEquals(aggregation.toString(), expectedAggregation.toString())
     }
 
     @Test
     fun `test less than or equals criteria`() {
-        val expr = "lte(name,20)"
+        val expression = "lte(name,20)"
 
-        val criteria = RqlGrammarUtils.buildCriteria(expr)
-        val expectedCriteria = Criteria.where("name").lte("20")
-        Assertions.assertEquals(criteria, expectedCriteria)
+        val aggregation: TypedAggregation<Content> = aggregationBuilder.build(expression)
+        val expectedAggregation = TypedAggregationUtils.build<Content>(
+            aggregations = *arrayOf(match(Content::name lte "20"))
+        )
+        Assertions.assertEquals(aggregation.toString(), expectedAggregation.toString())
     }
 
     @Test
     fun `test greater than criteria`() {
-        val expr = "gt(name,20)"
+        val expression = "gt(name,20)"
 
-        val criteria = RqlGrammarUtils.buildCriteria(expr)
-        val expectedCriteria = Criteria.where("name").gt("20")
-        Assertions.assertEquals(criteria, expectedCriteria)
+        val aggregation: TypedAggregation<Content> = aggregationBuilder.build(expression)
+        val expectedAggregation = TypedAggregationUtils.build<Content>(
+            aggregations = *arrayOf(match(Content::name gt "20"))
+        )
+        Assertions.assertEquals(aggregation.toString(), expectedAggregation.toString())
     }
 
     @Test
     fun `test greater than or equals criteria`() {
-        val expr = "gte(name,20)"
+        val expression = "gte(name,20)"
 
-        val criteria = RqlGrammarUtils.buildCriteria(expr)
-        val expectedCriteria = Criteria.where("name").gte("20")
-        Assertions.assertEquals(criteria, expectedCriteria)
+        val aggregation: TypedAggregation<Content> = aggregationBuilder.build(expression)
+        val expectedAggregation = TypedAggregationUtils.build<Content>(
+            aggregations = *arrayOf(match(Content::name gte "20"))
+        )
+        Assertions.assertEquals(aggregation.toString(), expectedAggregation.toString())
     }
 
     @Test
     fun `test like start operation criteria`() {
-        val expr = "like(name,%c)"
+        val expression = "like(name,%c)"
 
-        val criteria = RqlGrammarUtils.buildCriteria(expr)
-        val expectedCriteria = Criteria.where("name").regex("/c$/")
+        val aggregation: TypedAggregation<Content> = aggregationBuilder.build(expression)
+        val expectedAggregation = TypedAggregationUtils.build<Content>(
+            aggregations = *arrayOf(match(Content::name.regex("/c$/")))
+        )
 
-        Assertions.assertEquals(criteria, expectedCriteria)
+        Assertions.assertEquals(aggregation.toString(), expectedAggregation.toString())
     }
 
     @Test
     fun `test like contains operation criteria`() {
-        val expr = "like(name,%c%)"
+        val expression = "like(name,%c%)"
 
-        val criteria = RqlGrammarUtils.buildCriteria(expr)
-        val expectedCriteria = Criteria.where("name").regex("/c/")
+        val aggregation: TypedAggregation<Content> = aggregationBuilder.build(expression)
+        val expectedAggregation = TypedAggregationUtils.build<Content>(
+            aggregations = *arrayOf(match(Content::name.regex("/c/")))
+        )
 
-        Assertions.assertEquals(criteria, expectedCriteria)
+        Assertions.assertEquals(aggregation.toString(), expectedAggregation.toString())
     }
 
     @Test
     fun `test like end operation criteria`() {
-        val expr = "like(name,c%)"
+        val expression = "like(name,c%)"
 
-        val criteria = RqlGrammarUtils.buildCriteria(expr)
-        val expectedCriteria = Criteria.where("name").regex("/^c/")
+        val aggregation: TypedAggregation<Content> = aggregationBuilder.build(expression)
+        val expectedAggregation = TypedAggregationUtils.build<Content>(
+            aggregations = *arrayOf(match(Content::name.regex("/^c/")))
+        )
 
-        Assertions.assertEquals(criteria, expectedCriteria)
+        Assertions.assertEquals(aggregation.toString(), expectedAggregation.toString())
     }
 }

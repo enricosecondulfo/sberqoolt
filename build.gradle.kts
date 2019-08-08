@@ -43,7 +43,6 @@ dependencyManagement {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.springframework.data:spring-data-mongodb")
-    implementation("org.mongodb:mongodb-driver-reactivestreams")
     implementation("com.github.h0tk3y.betterParse:better-parse-jvm:0.4.0-alpha-3")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test") {

@@ -6,6 +6,8 @@ import com.github.h0tk3y.betterParse.grammar.parser
 import com.github.h0tk3y.betterParse.lexer.TokenMatch
 import com.github.h0tk3y.betterParse.parser.Parser
 import com.github.h0tk3y.betterParse.utils.Tuple2
+import it.github.enricosecondulfo.sberqoolt.RqlGrammar.getValue
+import it.github.enricosecondulfo.sberqoolt.RqlGrammar.provideDelegate
 
 object RqlGrammar : Grammar<Expression>() {
 
@@ -29,6 +31,7 @@ object RqlGrammar : Grammar<Expression>() {
 
     /* Pagination Operators Token */
     private val LIMIT by token("limit")
+    private val SKIP by token("skip")
     private val SORT by token("sort")
 
     private val MOD by token("%")
@@ -40,56 +43,79 @@ object RqlGrammar : Grammar<Expression>() {
     private val NUMBER by token("\\d+")
 
     private val variable by ID use { Variable(text) }
-    private val numConst by NUMBER use { Const(text.toInt()) }
+    private val numConst by NUMBER use { Const(text.toLong()) }
 
     private val propertyValue = variable or numConst
 
     private val comparisonOperatorsToken = EQ or NE or LT or LTE or GT or GTE or IN
 
     private val comparisonSignToKind = mapOf(
-            EQ to Eq,
-            NE to Ne,
-            LT to Lt,
-            LTE to Lte,
-            GT to Gt,
-            GTE to Gte
+        EQ to Eq,
+        NE to Ne,
+        LT to Lt,
+        LTE to Lte,
+        GT to Gt,
+        GTE to Gte
     )
 
     private val partialComparisonOperationsParser: Parser<Expression>
             by (comparisonOperatorsToken * -LPAR * parser(this::variable) * COMMA * parser(this::propertyValue) * -RPAR)
-                    .map { (op, property, _, value) ->
-                        when (comparisonSignToKind[op.type]) {
-                            is Eq -> EqualOperation(property, value)
-                            is Ne -> NotEqualOperation(property, value)
-                            is Lt -> LessThanOperation(property, value)
-                            is Lte -> LessThanOrEqualsOperation(property, value)
-                            is Gt -> GreaterThanOperation(property, value)
-                            is Gte -> GreaterThanOrEqualOperation(property, value)
-                            else -> EqualOperation(property, value)
-                        }
+                .map { (op, property, _, value) ->
+                    when (comparisonSignToKind[op.type]) {
+                        is Eq -> EqualOperation(property, value)
+                        is Ne -> NotEqualOperation(property, value)
+                        is Lt -> LessThanOperation(property, value)
+                        is Lte -> LessThanOrEqualsOperation(property, value)
+                        is Gt -> GreaterThanOperation(property, value)
+                        is Gte -> GreaterThanOrEqualOperation(property, value)
+                        else -> EqualOperation(property, value)
                     }
+                }
 
 
     private val likeOperationParser: Parser<Expression>
-            by (LIKE * -LPAR * parser(this::variable) * COMMA * optional(MOD) * parser(this::propertyValue) * optional(MOD) * -RPAR)
-                    .map { (_, property, _, start, value, end) -> println(start); LikeOperation(property, value, likePosition(start, end)) }
+            by (LIKE * -LPAR * parser(this::variable) * COMMA * optional(MOD) * parser(this::propertyValue) * optional(
+                MOD
+            ) * -RPAR)
+                .map { (_, property, _, start, value, end) ->
+                    println(start); LikeOperation(
+                    property,
+                    value,
+                    likePosition(start, end)
+                )
+                }
 
     private val fullOperationParser: Parser<Expression>
             by (FULL * -LPAR * parser(this::propertyValue) * -RPAR)
-                    .map { (_, value) -> FullOperation(value = value) }
+                .map { (_, value) -> FullOperation(value = value) }
 
-    private val comparisonOperationsParser = partialComparisonOperationsParser or likeOperationParser or fullOperationParser
+    private val comparisonOperationsParser =
+        partialComparisonOperationsParser or likeOperationParser or fullOperationParser
+
+    private val limitOperationParser: Parser<Expression>
+            by (LIMIT * -LPAR * numConst * -RPAR)
+                .map { (_, element) -> LimitOperation(element.value) }
+
+    private val skipOperationParser: Parser<Expression>
+            by (SKIP * -LPAR * numConst * -RPAR)
+                .map { (_, element) -> SkipOperation(element.value) }
 
     private val sortOperatorsToken = PLUS or MINUS
     private val sortOperationParser: Parser<Expression>
-            by (SORT * -LPAR * separatedTerms(sortOperatorsToken * parser(this::variable), COMMA, acceptZero = false) * -RPAR)
-                    .map { (_, args) -> args.map { println(it.t1.type) }; SortOperation(sortParts(args)) }
+            by (SORT * -LPAR * separatedTerms(
+                sortOperatorsToken * parser(this::variable),
+                COMMA,
+                acceptZero = false
+            ) * -RPAR)
+                .map { (_, args) -> args.map { println(it.t1.type) }; SortOperation(sortParts(args)) }
+
+    private val paginationOperationsParser = limitOperationParser or skipOperationParser or sortOperationParser
 
     private val term: Parser<Expression> by
     (ID map { Variable(it.text) }) or
-            (NUMBER map { Const(it.text.toInt()) }) or
+            (NUMBER map { Const(it.text.toLong()) }) or
             comparisonOperationsParser or
-            sortOperationParser
+            paginationOperationsParser
 
     private val andChain by leftAssociative(term, AND) { left, _, right -> AndOperation(left, right) }
     private val orChain by leftAssociative(andChain, OR) { left, _, right -> OrOperation(left, right) }

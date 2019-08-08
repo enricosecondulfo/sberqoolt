@@ -5,7 +5,7 @@ sealed class Expression
 sealed class OperationKind
 sealed class Operation(val kind: OperationKind) : Expression()
 
-data class Const(val value: Int) : Expression()
+data class Const(val value: Long) : Expression()
 data class Variable(val value: String) : Expression()
 
 /* Logical operators */
@@ -98,6 +98,7 @@ data class FullOperation(
 /* Pagination operations */
 sealed class PaginationOperation(kind: OperationKind): Operation(kind)
 object Limit: OperationKind()
+object Skip: OperationKind()
 object Sort: OperationKind()
 
 enum class SortType {
@@ -107,5 +108,6 @@ enum class SortType {
 
 data class SortPart(val property: Expression, val type: SortType)
 
-data class LimitOperation(val start: Int, val count: Int): PaginationOperation(Limit)
+data class LimitOperation(val maxElements: Long): PaginationOperation(Limit)
+data class SkipOperation(val elementsToSkip: Long): PaginationOperation(Skip)
 data class SortOperation(val parts: List<SortPart>): PaginationOperation(Sort)
