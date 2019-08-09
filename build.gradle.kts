@@ -13,9 +13,6 @@ plugins {
     `maven-publish`
 }
 
-group = "it.github.enricosecondulfo"
-version = "1.0-SNAPSHOT"
-
 repositories {
     mavenCentral()
     maven("https://repo.spring.io/milestone")
