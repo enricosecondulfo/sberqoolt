@@ -9,6 +9,6 @@ language: java
 jdk:
   - openjdk12
 script:
-  - chmod -R ug+x .travis
+  - chmod -R ug+x .ci
   - .ci/build.sh
   - .ci/publish.sh
